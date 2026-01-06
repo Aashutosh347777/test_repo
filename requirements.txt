@@ -1,0 +1,12 @@
+# OCR Engine
+paddleocr>=2.7.0
+
+# API Framework
+fastapi
+uvicorn[standard]
+python-multipart
+
+# Image Preprocessing
+opencv-python
+Pillow
+numpy<2.0.0
