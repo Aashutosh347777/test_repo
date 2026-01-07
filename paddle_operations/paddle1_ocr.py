@@ -41,3 +41,8 @@ def extract_from_doc(image_input) -> list:
     time_taken = end - start
     
     return [extract_results, time_taken, processed_img]
+
+
+if __name__ == "__main__":
+    img_path = r"C:\Users\LEGION\Documents\inficare\OCR\images\japanese\Mahat_neel.png"
+    print(extract_from_doc(img_path)[0:2])

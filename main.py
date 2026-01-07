@@ -7,8 +7,8 @@ import base64
 import json
 
 from paddle_operations.paddle1_ocr import extract_from_doc
-from paddle_operations.draw_bounding_box import draw_box
-from parsers import master_parser
+from extractors.parsers import master_parser
+from extractors.japanese_parser import JapaneseFieldExtractor
 
 app = FastAPI(title="PaddleOCR Extraction API")
 
@@ -36,21 +36,30 @@ async def extract_text(files: List[UploadFile] = File(...)):
         ocr_out = extract_from_doc(img)
         raw_results = ocr_out[0]
         time_taken = ocr_out[1]
-        processed_img = ocr_out[2]
 
         # 3. Parse Data (Regex)
-        parsed_data = master_parser(raw_results)
-
-        # 4. Draw Bounding Boxes
-        visualized_img = draw_box(raw_results, processed_img)
-        img_base64 = image_to_base64(visualized_img)
+        #parsed_data = master_parser(raw_results)
+        extractor = JapaneseFieldExtractor()
+        text_list = []
+        if raw_results:
+            for items in raw_results[0]:
+                # appending the each text in box to a list
+                text_list.append(items[1][0])
+                  
+        full_doc_text = "\n".join(text_list)
+        
+        if not full_doc_text.strip():
+            extracted_data : {}
+        
+        else:
+            doc_type = extractor.detect_document_type(full_doc_text)
+            extracted_data = (extractor.extract(full_doc_text,doc_type))
 
         # 5. Structure Response
         results.append({
             "filename": file.filename,
             "processing_time_seconds": round(time_taken, 4),
-            "extracted_data": parsed_data,
-            "image_with_boxes": img_base64  # Frontend can display this
+            "extracted_data": extracted_data,
         })
 
     return {"status": "success", "processed_count": len(results), "data": results}
